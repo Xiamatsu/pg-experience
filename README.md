@@ -1,2 +1,2 @@
 # pg-experience
-Experience using postgresql
+Experience using PostgreSQL
