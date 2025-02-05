@@ -1,3 +1,3 @@
 ### pg-experience
-Experience using database PostgreSQL
+\* Experience using database PostgreSQL \*
 
