@@ -62,7 +62,7 @@ consul keygen
 полученное значение надо использовать в параметре "encrypt" конфигурации
 
 __- настройка для первого запуска__<br>
-__создаём файл /etc/consul.d/config.json__  - файл на каждом хосте кластера для первого запуска
+__создаём файл__ _/etc/consul.d/config.json_  - файл на каждом хосте кластера
 
 ``` json
 {
@@ -118,7 +118,7 @@ consul validate /etc/consul.d/config.json
 > Configuration is valid!
 ```
 
-__создаём файл для службы Consul__ - /usr/lib/systemd/system/consyl.service
+__создаём файл для службы Consul__ - _/usr/lib/systemd/system/consul.service_
 
 ``` service
 [Unit]
@@ -385,7 +385,7 @@ consul members
 > test-db3   192.168.1.143:8301  alive   client  1.22.3  2         test-dcs-cluster  default    <default>
 ```
 
-## PostgreSQL
+## 3. PostgreSQL
 
 __- на 3-х хостах кластера СУБД - разворачиваем PostgresPro 1C 18__<br>
 _-- останавливаем службу и проверяем установленные Локальные языки_<br>
@@ -422,9 +422,9 @@ locale -a
   -- локаль en_US.utf8 установлена - будет использоваться для логов
 ```
 
-## 3. Patroni
+## 4. Patroni
 
-#### 3.1 Рабочие каталоги
+#### 4.1 Рабочие каталоги
 
 Создаём рабочие папки Patroni и для БД<br>
 для БД желательно размещать данные на другом диске<br>
@@ -438,7 +438,7 @@ sudo chown -R postgres: /pgdata /opt/patroni /var/log/patroni
 sudo chmod -R 755 /pgdata /opt/patroni /var/log/patroni
 ```
 
-#### 3.2 Python - виртуальное окружение
+#### 4.2 Python - виртуальное окружение
 
 Patroni программа написанная на Python<br>
 Желательно запускать программы в отдельном виртуальном окружении (песочнице)<br>
@@ -451,7 +451,7 @@ Patroni программа написанная на Python<br>
 
 ```
 
-#### 3.3 Установка Patroni
+#### 4.3 Установка Patroni
 
 Для работы Patroni требуются также дополнительные библиотеки<br>
 И желательно обновить pip - менеджер библиотек Python<br>
@@ -460,7 +460,7 @@ Patroni программа написанная на Python<br>
 ``` bash
 ```
 
-#### 3.4 Настройка Patroni
+#### 4.4 Настройка Patroni
 
 Для настройки нам нужны расчитанные параметры для сервера СУБД PostgreSQL<br>
 Версия PostgresPro 1C - удобна тем что,<br> 
@@ -528,8 +528,8 @@ jit = off
 ``` service
 ```
 
-#### 3.5 Запуск и команды Patroni
+#### 4.5 Запуск и команды Patroni
 
 
 
-##  4. Vip-manager
+##  5. Vip-manager
