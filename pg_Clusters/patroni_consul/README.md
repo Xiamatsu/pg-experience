@@ -1,4 +1,4 @@
-# Настройка кластера Patroni + Consul + (VIP-manager или callback Patroni)
+# Настройка кластера Patroni + Consul + VIP-manager
 
 ##  Оборудование и ПО
 
@@ -40,7 +40,7 @@ sudo groupadd consul
 sudo useradd -m -d /var/lib/consul -g consul -r -c 'Consul DCS service' consul
 sudo mkdir -p /etc/consul.d /var/lib/consul/data /var/log/consul
 sudo chown -R consul: /etc/consul.d /var/lib/consul/data /var/log/consul
-sudo chmod -R 775 /etc/consul.d /var/lib/consul/data /var/log/consul
+sudo chmod 775 /etc/consul.d /var/lib/consul /var/lib/consul/data /var/log/consul
 ```
 
 /etc/consul.d         - каталог конфигураций<br> 
@@ -49,6 +49,14 @@ sudo chmod -R 775 /etc/consul.d /var/lib/consul/data /var/log/consul
 
 
 #### Первый запуск Consul кластера
+
+__надо зарегистрировать все хосты с общим ключём кластера__<br>
+получаем ключ на любом хосте кластера (один раз)
+```
+consul keygen
+> L5o6P57/auweOjNSgJ8sOhoMf4BbiaTyPnDw097p/kk=
+```
+полученное значение надо использовать в параметре "encrypt" конфигурации
 
 __- настройка для первого запуска__<br>
 __создаём файл /etc/consul.d/config.json__  - файл на каждом хосте кластера для первого запуска
@@ -69,14 +77,14 @@ __создаём файл /etc/consul.d/config.json__  - файл на кажд�
          "only_passing": true
      },
      "enable_syslog": true,
-     "encrypt": "encrypt-key",
+     "encrypt": "L5o6P57/auweOjNSgJ8sOhoMf4BbiaTyPnDw097p/kk=",
      "leave_on_terminate": true,
      "log_level": "INFO",
      "log_file": "/var/log/consul/",
      "log_rotate_duration": "24h",
      "log_rotate_max_files": 30,
      "rejoin_after_leave": true,
-     "retry_join": [ test-dcs1, test-dcs2, test-dcs3 ],
+     "retry_join": [ "test-dcs1", "test-dcs2", "test-dcs3" ],
      "server": true,
      "ui_config": { "enabled": true },
      "primary_datacenter": "test-dcs-cluster",
@@ -93,10 +101,13 @@ __важные параметры__
 "datacenter": "test-dcs-cluster"  - имя кластера DCS
 "node_name": "test-dcs1"   -  имя текущей ноды кластера DCS ( у всех разное )
 "primary_datacenter": "test-dcs-cluster" - основной кластер DCS - текущий
+"encrypt": "L5o6P57/auweOjNSgJ8sOhoMf4BbiaTyPnDw097p/kk=" - ключ шифрования кластера
 ```
 __проверка правильности конфигурации__
 ```
-sudo consul validate /etc/consul.d/config.json
+consul validate /etc/consul.d/config.json
+> bootstrap_expect > 0: expecting 3 servers
+> Configuration is valid!
 ```
 
 __создаём файл для службы Consul__ - /usr/lib/systemd/system/consyl.service
@@ -126,15 +137,24 @@ WantedBy=multi-user.target
 ```
 
 __окончательная настройка и первый запуск__
+( на каждом узле кластера )
 ```
 sudo systemctl daemon-reload
 sudo systemctl start consul
 --
 sudo systemctl status consul
 ```
-
-
 #### Настройка Consul ACL 
+
+__получение мастер токена__<br>
+( на одном из хостов кластера)
+```
+consul acl bootstrap
+```
+нам нужно значение SecterID - это мастер токен
+```
+
+```
 
 #### Второй запуск Consul кластера
 
