@@ -13,8 +13,8 @@ __- программное обеспечение__
 
 ``` text
 - Astra Linux 1.8  (based on Debian 12)
-- Consul 1.22
-- Patroni 4.0.4 
+- Consul 1.22.3
+- Patroni 4.1.0 
 - PostgresPro 1C 18  (free edition PostgresPro)
 - Vip-manager 4.0
 ```
