@@ -292,6 +292,7 @@ __на хостах СУБД__
 ** выполняем п.2.1 - установка Consul
 ** выполняем п.2.2 - только
   ключ шифрования уже есть общий и для агентов<br>
+  также понадобится токен ACL для агента<br>
   файл конфигурации /etc/consul.d/config.json
 
 ``` json
@@ -315,22 +316,38 @@ __на хостах СУБД__
      "acl": {
          "enabled": true,
          "tokens": {
-             "default": "master-token"
+             "default": "61655c0a-07ff-7bf7-e22a-c855e2ec0f39"
          }
      }
 }
 ```
+
   файл службы  /usr/lib/systemd/system/consul.service - такой-же
 
   также проверяем валидность конфигурационного файла
 
   запускаем службу
+
 ``` bash
 sudo systemctl daemon-reload
 sudo systemctl start consul
 --
 sudo systemctl status consul
 ```  
+
+#### 2.6 Основные команды работы с Consul из консоли
+
+``` bash
+-- вывод списка хостов данного сегмента 
+consul members
+
+-- вывод списка серверов кластера
+consul operator raft list-peers
+
+-- 'тихая' смена лидера в кластере
+consul operator raft transfer-leader
+```
+
 
 ## PostgreSQL
 
