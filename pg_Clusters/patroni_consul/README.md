@@ -291,10 +291,46 @@ consul acl set-agent-token agent 61655c0a-07ff-7bf7-e22a-c855e2ec0f39
 __на хостах СУБД__  
 ** выполняем п.2.1 - установка Consul
 ** выполняем п.2.2 - только
+  ключ шифрования уже есть общий и для агентов<br>
   файл конфигурации /etc/consul.d/config.json
 
 ``` json
+{
+     "bind_addr": "{{ GetInterfaceIP `eth0` }}",
+     "client_addr": "127.0.0.1",
+     "datacenter": "test-dcs-cluster",
+     "node_name": "test-db1",
+     "data_dir": "/var/lib/consul/data",
+     "disable_update_check": true,
+     "enable_local_script_checks": true,
+     "enable_syslog": true,
+     "encrypt": "L5o6P57/auweOjNSgJ8sOhoMf4BbiaTyPnDw097p/kk=",
+     "leave_on_terminate": true,
+     "log_level": "WARN",
+     "log_file": "/var/log/consul/",
+     "log_rotate_duration": "24h",
+     "log_rotate_max_files": 30,
+     "retry_join": [ "test-dcs1", "test-dcs2", "test-dcs3" ],
+     "server": false,
+     "acl": {
+         "enabled": true,
+         "tokens": {
+             "default": "master-token"
+         }
+     }
+}
 ```
+  файл службы  /usr/lib/systemd/system/consul.service - такой-же
+
+  также проверяем валидность конфигурационного файла
+
+  запускаем службу
+``` bash
+sudo systemctl daemon-reload
+sudo systemctl start consul
+--
+sudo systemctl status consul
+```  
 
 ## PostgreSQL
 
