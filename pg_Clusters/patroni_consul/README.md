@@ -348,6 +348,18 @@ consul operator raft list-peers
 consul operator raft transfer-leader
 ```
 
+#### 2.7 Web-интерфейс Consul
+
+открываем в браузере страницу по адресу<br>
+http://192.168.1.181:8500     (192.168.1.181 - адрес хоста  test-dns1)
+![Начальная страница входа](Images/01_Login_consul_portal.png)
+
+Далее вводим в качестве пароля - мастер токен<br>
+![Страница состояния кластера Consul](Images/02_Consul_portal_overview.png)
+
+![Страница сервисов кластера Consul](Images/03_Consul_portal_services.png)
+
+![Страница хостов подключенных к кластеру Consul](Images/04_Consul_portal_njdes.png)
 
 ## PostgreSQL
 
