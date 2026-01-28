@@ -151,8 +151,6 @@ __настройка и запуск__
 ``` bash
 sudo systemctl daemon-reload
 sudo systemctl start consul
---
-sudo systemctl status consul
 ```
 
 #### 2.3 Настройка Consul ACL
@@ -171,7 +169,7 @@ consul acl bootstrap
 >   00000000-0000-0000-0000-000000000001 - global-management
 ```
 
-нам нужно значение SecterID - это мастер токен<br>
+нам нужно значение SecterID - это мастер токен _(b5eb2128-eb32-7cbe-77fe-45959c2a444a)_<br>
 
 если присвоить это значение переменной окружения CONSUL_HTTP_TOKEN<br>
 то можно через команды консоли проверить состояние кластера
@@ -187,6 +185,7 @@ consul members
 
 для текущего пользователя можно сохранить в профайле данный токен<br>
 (можно на каждом хосте кластера такую настройку сделать)
+
 ``` bash
 test -f ~/.profile  &&  sed -i "/CONSUL_HTTP/d"  ~/.profile
 echo "export CONSUL_HTTP_TOKEN=b5eb2128-eb32-7cbe-77fe-45959c2a444a" >> ~/.profile
@@ -196,7 +195,7 @@ echo "export CONSUL_HTTP_TOKEN=b5eb2128-eb32-7cbe-77fe-45959c2a444a" >> ~/.profi
 
 __создание политик ACL__ для сервисов кластера DCS<br>
 
-** создадим файл  policy-agent.hcl  для описания простого агентского доступа
+** создадим файл  policy-agent.hcl  для описания простого агентского доступа (хосты)
 
 ``` hcl
 node_prefix "" {
