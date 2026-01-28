@@ -472,7 +472,6 @@ Patroni программа написанная на Python<br>
 # The following settings were added by pgpro_tune.
 # pgpro_tune was run with the following options:
 # -D /var/lib/pgpro/1c-18/data --config-file=/var/lib/pgpro/1c-18/data/postgresql.conf
-# At 28.01.2026 19:46:05
 #------------------------------------------------------------------------------
 # Memory configuration
 shared_buffers = 489MB
@@ -508,7 +507,7 @@ random_page_cost = '1.1' # for NVMe SSD
 #random_page_cost = 4.0  # for HDD
 jit = off
 #------------------------------------------------------------------------------
-# End of settings added by pgpro_tune at 28.01.2026 19:46:05
+# End of settings added by pgpro_tune 
 #------------------------------------------------------------------------------
 ```
 добавим данные настройки в настройки тестового стенда
@@ -522,7 +521,7 @@ jit = off
 Так как запускаем Patroni в отдельном виртуальном окружении Python<br>
 Для организации службы задаем также пути к нужным каталогам
 
-Файл опмсания службы - _/usr/lib/systemd/system/patroni.service
+Файл опмсания службы - _/usr/lib/systemd/system/patroni.service_
 
 ``` service
 ```
