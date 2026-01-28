@@ -120,7 +120,7 @@ consul validate /etc/consul.d/config.json
 
 __создаём файл для службы Consul__ - /usr/lib/systemd/system/consyl.service
 
-``` text
+``` service
 [Unit]
 Description=Consul Service Discovery Agent
 Documentation=https://www.consul.io/
@@ -286,7 +286,46 @@ consul acl set-agent-token agent 61655c0a-07ff-7bf7-e22a-c855e2ec0f39
 > ACL token "agent" set successfully
 ```
 
-#### 2.5 Consul - как агент на серверах Patroni
+#### 2.5 Основные команды работы с Consul из консоли
+
+``` bash
+-- вывод списка хостов данного сегмента 
+consul members
+> Node       Address             Status  Type    Build   Protocol  DC                Partition  Segment
+> test-dcs1  192.168.1.181:8301  alive   server  1.22.3  2         test-dcs-cluster  default    <all>
+> test-dcs2  192.168.1.182:8301  alive   server  1.22.3  2         test-dcs-cluster  default    <all>
+> test-dcs3  192.168.1.183:8301  alive   server  1.22.3  2         test-dcs-cluster  default    <all>
+
+-- вывод списка серверов кластера
+consul operator raft list-peers
+> Node       ID                                    Address             State     Voter  RaftProtocol  Commit Index  Trails Leader By
+> test-dcs1  eab7bb8b-3969-3008-5d91-e103688b0eae  192.168.1.181:8300  leader    true   3             2757          -
+> test-dcs2  3b536188-8dec-dbce-f80f-07c8af70651c  192.168.1.182:8300  follower  true   3             2757          0 commits
+> test-dcs3  ac70217d-f375-5509-3114-19ac8a125f2b  192.168.1.183:8300  follower  true   3             2757          0 commits
+
+-- 'тихая' смена лидера в кластере
+consul operator raft transfer-leader
+> Success
+```
+
+#### 2.6 Web-интерфейс Consul
+
+открываем в браузере страницу по порту 8500<br>
+http://192.168.1.181:8500     (192.168.1.181 - адрес хоста  test-dns1)
+![Начальная страница входа](Images/01_Login_consul_portal.png)
+Далее вводим в качестве пароля - мастер токен<br>
+
+_Страница состояния кластера Consul_
+![Страница состояния кластера Consul](Images/02_Consul_portal_overview.png)
+
+_Страница сервисов кластера Consul_
+![Страница сервисов кластера Consul](Images/03_Consul_portal_services.png)
+
+_Страница хостов подключенных к кластеру Consul_
+![Страница хостов подключенных к кластеру Consul](Images/04_Consul_portal_njdes.png)
+
+
+#### 2.7 Consul - как агент на серверах Patroni
 
 __на хостах СУБД__  
 ** выполняем п.2.1 - установка Consul
@@ -331,35 +370,20 @@ __на хостах СУБД__
 ``` bash
 sudo systemctl daemon-reload
 sudo systemctl start consul
---
-sudo systemctl status consul
 ```  
 
-#### 2.6 Основные команды работы с Consul из консоли
+контролируем добавление хоста через командную строку или WEB-интерфейс
 
-``` bash
--- вывод списка хостов данного сегмента 
-consul members
-
--- вывод списка серверов кластера
-consul operator raft list-peers
-
--- 'тихая' смена лидера в кластере
-consul operator raft transfer-leader
 ```
-
-#### 2.7 Web-интерфейс Consul
-
-открываем в браузере страницу по адресу<br>
-http://192.168.1.181:8500     (192.168.1.181 - адрес хоста  test-dns1)
-![Начальная страница входа](Images/01_Login_consul_portal.png)
-
-Далее вводим в качестве пароля - мастер токен<br>
-![Страница состояния кластера Consul](Images/02_Consul_portal_overview.png)
-
-![Страница сервисов кластера Consul](Images/03_Consul_portal_services.png)
-
-![Страница хостов подключенных к кластеру Consul](Images/04_Consul_portal_njdes.png)
+consul members
+> Node       Address             Status  Type    Build   Protocol  DC                Partition  Segment
+> test-dcs1  192.168.1.181:8301  alive   server  1.22.3  2         test-dcs-cluster  default    <all>
+> test-dcs2  192.168.1.182:8301  alive   server  1.22.3  2         test-dcs-cluster  default    <all>
+> test-dcs3  192.168.1.183:8301  alive   server  1.22.3  2         test-dcs-cluster  default    <all>
+> test-db1   192.168.1.141:8301  alive   client  1.22.3  2         test-dcs-cluster  default    <default>
+> test-db2   192.168.1.142:8301  alive   client  1.22.3  2         test-dcs-cluster  default    <default>
+> test-db3   192.168.1.143:8301  alive   client  1.22.3  2         test-dcs-cluster  default    <default>
+```
 
 ## PostgreSQL
 
@@ -371,11 +395,10 @@ _-- во время инициализации кластера PostgreSQL бу�
 wget https://repo.postgrespro.ru/1c/1c-18/keys/pgpro-repo-add.sh
 chmod +x ./pgpro-repo-add.sh
 sudo ./pgpro-repo-add.sh 
-sudo apt -y install postgrespro-1c-18 postgrespro-1c-18-dev
+sudo apt -y install postgrespro-1c-18 
 ...
-  -- останавливаем и выключаем автозагрузку 
-sudo systemctl stop postgrespro-1c-17
-sudo systemctl disable postgrespro-1c-17
+  -- выключаем автозагрузку сразу с остановкой службы
+sudo systemctl disable --now postgrespro-1c-18
 
   -- Patroni сам будет запускать сервер PostgreSQL
 
@@ -399,10 +422,114 @@ locale -a
   -- локаль en_US.utf8 установлена - будет использоваться для логов
 ```
 
-## Patroni
+## 3. Patroni
 
-#### Python - виртуальное окружение
+#### 3.1 Рабочие каталоги
 
-#### Установка Patroni 
+Создаём рабочие папки Patroni и для БД<br>
+для БД желательно размещать данные на другом диске<br>
+но в данном тесте просто сделаем рабочий каталог БД  в /
 
-##  Vip-manager
+``` bash
+sudo mkdir -p /pgdata
+sudo mkdir -p /opt/patroni
+sudo mkdir -p /var/log/patroni
+sudo chown -R postgres: /pgdata /opt/patroni /var/log/patroni
+sudo chmod -R 755 /pgdata /opt/patroni /var/log/patroni
+```
+
+#### 3.2 Python - виртуальное окружение
+
+Patroni программа написанная на Python<br>
+Желательно запускать программы в отдельном виртуальном окружении (песочнице)<br>
+Так и сделаем
+
+Создаём новое виртуальное окружение Python<br>
+Делаем всё от пользователя __postgres__ от него и будет запускаться служба
+
+``` bash
+
+```
+
+#### 3.3 Установка Patroni
+
+Для работы Patroni требуются также дополнительные библиотеки<br>
+И желательно обновить pip - менеджер библиотек Python<br>
+Делаем всё в виртульном окружении и это не будет влиять на систему 
+
+``` bash
+```
+
+#### 3.4 Настройка Patroni
+
+Для настройки нам нужны расчитанные параметры для сервера СУБД PostgreSQL<br>
+Версия PostgresPro 1C - удобна тем что,<br> 
+есть уже расчитанные параметры согласно характеристик хоста<br>
+Вот добавленные параметры в файл postgresql.conf
+//  для хоста  2 cpu 2 gb ram 16 gb hdd
+
+``` conf
+#------------------------------------------------------------------------------
+# The following settings were added by pgpro_tune.
+# pgpro_tune was run with the following options:
+# -D /var/lib/pgpro/1c-18/data --config-file=/var/lib/pgpro/1c-18/data/postgresql.conf
+# At 28.01.2026 19:46:05
+#------------------------------------------------------------------------------
+# Memory configuration
+shared_buffers = 489MB
+effective_cache_size = 979MB
+max_connections = 61
+work_mem = 32MB
+temp_buffers = 16MB
+maintenance_work_mem = 122MB
+autovacuum_work_mem = 61MB
+# Vacuum and bgwriter configuration
+autovacuum_max_workers = 4
+vacuum_cost_limit = 400
+autovacuum_naptime = 20s
+autovacuum_analyze_scale_factor = '0.005'
+bgwriter_delay = 20ms
+bgwriter_lru_multiplier = '4.0'
+bgwriter_lru_maxpages = 4000
+# Additional configuration
+track_activity_query_size = 10kB
+default_statistics_target = 800
+wal_compression = lz4
+default_toast_compression = lz4
+log_lock_waits = on
+log_connections = on
+log_disconnections = on
+max_wal_size = 4GB
+min_wal_size = 2GB
+effective_io_concurrency = 200 #  for SSD
+#effective_io_concurrency = 500 # for NVMe
+#effective_io_concurrency = 1           # for HDD
+random_page_cost = '1.1' # for NVMe SSD
+#random_page_cost = 1.3  # for SATA SSD
+#random_page_cost = 4.0  # for HDD
+jit = off
+#------------------------------------------------------------------------------
+# End of settings added by pgpro_tune at 28.01.2026 19:46:05
+#------------------------------------------------------------------------------
+```
+добавим данные настройки в настройки тестового стенда
+
+Настройка находится конфигурационном файле  _/opt/patroni/patroni.yml_<br>
+( файлы YAML очень чувствительны к отступам - внимательно! )
+
+``` yaml
+```
+
+Так как запускаем Patroni в отдельном виртуальном окружении Python<br>
+Для организации службы задаем также пути к нужным каталогам
+
+Файл опмсания службы - _/usr/lib/systemd/system/patroni.service
+
+``` service
+```
+
+#### 3.5 Запуск и команды Patroni
+
+
+
+##  4. Vip-manager
