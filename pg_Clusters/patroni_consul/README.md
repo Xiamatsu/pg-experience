@@ -669,6 +669,7 @@ __Описание некоторых параметров:__
 ```
 
 __Проверка файла конфигурации__
+
 ``` bash
 patroni --validate-config /opt/patroni/patroni.yml
 ```
@@ -682,7 +683,5 @@ patroni --validate-config /opt/patroni/patroni.yml
 ```
 
 #### 4.5 Запуск и команды Patroni
-
-
 
 ##  5. Vip-manager
