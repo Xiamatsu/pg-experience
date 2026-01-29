@@ -9,6 +9,21 @@ __настроим 6 виртуальных машин__
 - три хоста - кластер СУБД  [ test-db1,  test-db2,  test-db3 ]
 ```
 
+параметры разыменования хостов задаём в файле /etc/hosts<br> 
+так как у нас нет контроллера домена<br>
+( на всех хостах - добавляем - например )
+
+```
+192.168.1.181   test-dcs1  test-dcs1.test.local
+192.168.1.182   test-dcs2  test-dcs2.test.local
+192.168.1.183   test-dcs3  test-dcs3.test.local
+192.168.1.141   test-db1   test-db1.test.local
+192.168.1.142   test-db2   test-db2.test.local
+192.168.1.143   test-db3   test-db3.test.local
+
+192.168.1.140   test-db-cl test-db-cl.test.local
+```
+
 __- программное обеспечение__
 
 ``` text
