@@ -290,6 +290,8 @@ __получили токены__ (значения SecretID) <br>
 для Patroni - ea5a1ccc-e063-20c6-46b8-d751e7750111<br>
 будем их использовать при дальнейшей конфигурации
 
+__Также роли и токены можно создавать на WEB странице кластера__
+
 #### 2.4 Настройка ACL хостов кластера DCS
 
 на каждом хосте кластера DCS настроим ACL доступ (как хост)
@@ -326,17 +328,17 @@ consul operator raft transfer-leader
 
 открываем в браузере страницу по порту 8500<br>
 http://192.168.1.181:8500     (192.168.1.181 - адрес хоста  test-dns1)
-![Начальная страница входа](Images/01_Login_consul_portal.png)
+<img src="./Images/01_Login_consul_portal.png" alt="drawing" width="600"/>
 Далее вводим в качестве пароля - мастер токен<br>
 
 _Страница состояния кластера Consul_
-![Страница состояния кластера Consul](Images/02_Consul_portal_overview.png)
+<img src="./Images/02_Consul_portal_overview.png" alt="drawing" width="600"/>
 
 _Страница сервисов кластера Consul_
-![Страница сервисов кластера Consul](Images/03_Consul_portal_services.png)
+<img src="./Images/03_Consul_portal_services.png" alt="drawing" width="600"/>
 
 _Страница хостов подключенных к кластеру Consul_
-![Страница хостов подключенных к кластеру Consul](Images/04_Consul_portal_njdes.png)
+<img src="./Images/04_Consul_portal_nodes.png" alt="drawing" width="600"/>
 
 
 #### 2.7 Consul - как агент на серверах Patroni
@@ -690,13 +692,41 @@ patroni --validate-config /opt/patroni/patroni.yml
 ```
 
 Так как запускаем Patroni в отдельном виртуальном окружении Python<br>
-Для организации службы задаем также пути к нужным каталогам
+Для организации службы задаем также пути к нужным каталогам<br>
+Обязательно нужно определить<br> 
+какое значение у переменной PATH пользователя postgres<br>
+добавить ещё путь к выполняемым файлам postgresql
 
 Файл опмсания службы - _/usr/lib/systemd/system/patroni.service_
 
 ``` service
+[Unit]
+Description=Runners to orchestrate a high-availability PostgreSQL
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=postgres
+Group=postgres
+WorkingDirectory=/opt/patroni/bin
+Environment='PATH=/opt/patroni/bin:/opt/pgpro/1c-18/bin:/usr/local/bin:/usr/bin:/bin'
+ExecStart=/opt/patroni/bin/patroni /opt/patroni/patroni.yml
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=process
+TimeoutSec=30
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
 ```
 
 #### 4.5 Запуск и команды Patroni
+
+Регистрируем службу и запускаем на первом хосте для инициализации БД и кластера
+
+```
+sudo systemctl daemon-reload
+sudo systemctl start patroni
+```
 
 ##  5. Vip-manager
