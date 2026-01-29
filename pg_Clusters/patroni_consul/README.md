@@ -428,6 +428,7 @@ locale -a
 Создаём рабочие папки Patroni и для БД<br>
 для БД желательно размещать данные на другом диске<br>
 но в данном тесте просто сделаем рабочий каталог БД  в /
+( на каждом хосте кластера БД )
 
 ``` bash
 sudo mkdir -p /pgdata
@@ -445,9 +446,26 @@ Patroni программа написанная на Python<br>
 
 Создаём новое виртуальное окружение Python<br>
 Делаем всё от пользователя __postgres__ от него и будет запускаться служба
+( на каждом хосте кластера БД )
 
 ``` bash
+-- дополниетльные модули для Python
+sudo apt -y install python3-pip python3-venv
+-- создаём виртуальное окружение
+sudo su - postgres -c "python3 -m venv /opt/patroni"
+-- настраиваем активацию виртуального
+-- окружения при подключении пользователя postgres
+sudo test -f  ~postgres/.profile  &&  sudo chown postgres: ~postgres/.profile
+sudo su - postgres -c "echo 'source /opt/patroni/bin/activate' >> ~/.profile"
+```
 
+_теперь при подключении пользователем postgres_<br>
+_активируется виртуальное окружение_<br>
+_и на это будет указывать изменившаяся строка приглашения_
+
+``` bash
+astra@test-db1:~$ sudo su - postgres
+(patroni) postgres@test-db1:~$
 ```
 
 #### 4.3 Установка Patroni
@@ -455,8 +473,20 @@ Patroni программа написанная на Python<br>
 Для работы Patroni требуются также дополнительные библиотеки<br>
 И желательно обновить pip - менеджер библиотек Python<br>
 Делаем всё в виртульном окружении и это не будет влиять на систему 
+( на каждом хосте кластера БД )
 
 ``` bash
+-- обновление дополнительных системных модулей Python
+sudo su - postgres -c "python3 -m pip install --upgrade pip"
+sudo su - postgres -c "pip install --upgrade  wheel"
+sudo su - postgres -c "pip install --upgrade  setuptools"
+-- клиент Consul для Python
+sudo su - postgres -c "pip install --upgrade  py_consul"
+-- клиент PostgreSQL для Python
+sudo su - postgres -c "pip install --upgrade  psycopg"
+sudo su - postgres -c "pip install --upgrade  psycopg_binary"
+-- установка Patroni
+sudo su - postgres -c "pip install --upgrade  patroni"
 ```
 
 #### 4.4 Настройка Patroni
@@ -510,12 +540,137 @@ jit = off
 # End of settings added by pgpro_tune 
 #------------------------------------------------------------------------------
 ```
-добавим данные настройки в настройки тестового стенда
+_учитывая эти данные - составим настройки тестового стенда_
 
 Настройка находится конфигурационном файле  _/opt/patroni/patroni.yml_<br>
 ( файлы YAML очень чувствительны к отступам - внимательно! )
 
 ``` yaml
+name: test-db1
+namespace: /db/
+scope: test
+
+watchdog:
+  mode: off
+
+log:
+  level: INFO
+  format: '%(asctime)s %(levelname)s: %(message)s'
+  dateformat: ''
+  max_queue_size: 1000
+  dir: /var/log/patroni/
+  file_num: 4
+  file_size: 25000000
+  loggers:
+    postgres.postmaster: INFO
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: test-db1:8008
+  authentication:
+    username: patroni
+    password: patroni
+
+consul:
+  host: "localhost:8500"
+  register_service: true
+  token: "ea5a1ccc-e063-20c6-46b8-d751e7750111"
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    master_start_timeout: 300
+    postgresql:
+      use_pg_rewind: true
+      pg_hba:
+        - local   all             postgres                                peer
+        - local   all             all                                     md5
+        - host    all             all             127.0.0.1/32            md5
+        - local   replication     all                                     peer
+        - host    replication     all             127.0.0.1/32            md5
+        - host    replication     replicator      samenet                 md5
+        - host    all             all             0.0.0.0/0               md5
+      use_slots: true
+      parameters:
+        checkpoint_timeout: '15min'
+        commit_delay: 1000
+        hot_standby: on
+        lc_messages: en_US.UTF-8
+        log_connections: on
+        log_directory: 'log'
+        logging_collector: on
+        maintenance_work_mem: '122MB'
+        max_connections: 100
+        max_files_per_process: 10000
+        max_locks_per_transaction: 256
+        max_parallel_maintenance_workers: 2
+        max_parallel_workers_per_gather: 0
+        max_replication_slots: 5
+        max_wal_senders: 5
+        max_wal_size: '4GB'
+        min_wal_size: '2GB'
+        shared_buffers: '489MB'
+        standard_conforming_strings: off
+        temp_buffers: '16MB'
+        unix_socket_directories: '/tmp/'
+        vacuum_cost_limit: 400
+        wal_keep_segments: 8
+        wal_level: replica
+        work_mem: '32MB'
+
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+    - locale: ru_RU.UTF-8
+
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: test-db1:5432
+  config_dir: /pgdata/test
+  bin_dir: /opt/pgpro/1c-18/bin/
+  data_dir: /pgdata/test
+  pgpass: /tmp/pgpass
+  authentication:
+    superuser:
+      username: postgres
+      password: 'postgres'
+    replication:
+      username: replicator
+      password: 'replicator'
+    rewind:
+      username: postgres
+      password: 'postgres'
+
+  parameters:
+    logging_collector: on
+    log_directory: 'log'
+
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+  nosync: false
+```
+
+Для каждого хоста надо указывать собственное имя,<br>
+где есть параметры для подключения<br>
+
+__Описание некоторых параметров:__
+
+``` text
+'name' - имя хоста при регистрации на DCS в кластере
+'namespace' - имя корневого ключа на DCS
+'scope' - имя сервиса на DCS
+'consul'.'token' - значение токена Consul для Patroni
+'bootstrap' - раздел первой инициализации кластера
+```
+
+__Проверка файла конфигурации__
+``` bash
+patroni --validate-config /opt/patroni/patroni.yml
 ```
 
 Так как запускаем Patroni в отдельном виртуальном окружении Python<br>
