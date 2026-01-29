@@ -388,7 +388,7 @@ sudo systemctl daemon-reload
 sudo systemctl start consul
 ```  
 
-контролируем добавление хоста через командную строку или WEB-интерфейс
+контролируем добавление хостов через командную строку или WEB-интерфейс
 
 ```
 consul members
