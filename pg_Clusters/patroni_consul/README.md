@@ -327,18 +327,18 @@ consul operator raft transfer-leader
 #### 2.6 Web-интерфейс Consul
 
 открываем в браузере страницу по порту 8500<br>
-http://192.168.1.181:8500     (192.168.1.181 - адрес хоста  test-dns1)
-<img src="./Images/01_Login_consul_portal.png" alt="drawing" width="500"/>
+http://192.168.1.181:8500     (192.168.1.181 - адрес хоста  test-dns1)<br>
+<img src="./Images/01_Login_consul_portal.png" alt="drawing" width="600"/>
 Далее вводим в качестве пароля - мастер токен<br>
 
-_Страница состояния кластера Consul_
-<img src="./Images/02_Consul_portal_overview.png" alt="drawing" width="500"/>
+_Страница состояния кластера Consul_<br>
+<img src="./Images/02_Consul_portal_overview.png" alt="drawing" width="600"/>
 
-_Страница сервисов кластера Consul_
-<img src="./Images/03_Consul_portal_services.png" alt="drawing" width="500"/>
+_Страница сервисов кластера Consul_<br>
+<img src="./Images/03_Consul_portal_services.png" alt="drawing" width="600"/>
 
-_Страница хостов подключенных к кластеру Consul_
-<img src="./Images/04_Consul_portal_nodes.png" alt="drawing" width="500"/>
+_Страница хостов подключенных к кластеру Consul_<br>
+<img src="./Images/04_Consul_portal_nodes.png" alt="drawing" width="600"/>
 
 
 #### 2.7 Consul - как агент на серверах Patroni
