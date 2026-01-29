@@ -329,6 +329,7 @@ consul operator raft transfer-leader
 открываем в браузере страницу по порту 8500<br>
 http://192.168.1.181:8500     (192.168.1.181 - адрес хоста  test-dns1)<br>
 <img src="./Images/01_Login_consul_portal.png" alt="drawing" width="600"/>
+
 Далее вводим в качестве пароля - мастер токен<br>
 
 _Страница состояния кластера Consul_<br>
@@ -798,7 +799,7 @@ Patroni запустил сам PostgreSQL и создал новую базу<b
 Для работы настроим переменные окружения для удобства работы __patronictl__<br>
 ( запускаем от администратора )
 
-```
+``` bash
 sudo test -f ~postgres/.profile  &&  sudo sed -i "/PATRONI/d" ~postgres/.profile
 sudo test -f ~postgres/.profile  &&  sudo chown postgres: ~postgres/.profile
 sudo su - postgres -c "echo 'export PATRONI_CONFIGURATION=/opt/patroni/patroni.yml' >> ~postgres/.profile"
