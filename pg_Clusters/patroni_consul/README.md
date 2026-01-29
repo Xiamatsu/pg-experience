@@ -724,9 +724,56 @@ WantedBy=multi-user.target
 
 Регистрируем службу и запускаем на первом хосте для инициализации БД и кластера
 
-```
+``` bash
 sudo systemctl daemon-reload
 sudo systemctl start patroni
 ```
+
+Если всё удачно стартоваало то смотрим статус
+
+``` bash
+sudo systemctl status patroni
+```
+
+Статус службы
+
+```
+● patroni.service - Runners to orchestrate a high-availability PostgreSQL
+     Loaded: loaded (/lib/systemd/system/patroni.service; disabled; preset: enabled)
+     Active: active (running) since Thu 2026-01-29 14:42:31 MSK; 8s ago
+   Main PID: 72496 (patroni)
+      Tasks: 16 (limit: 2293)
+     Memory: 150.1M
+        CPU: 1.535s
+     CGroup: /system.slice/patroni.service
+             ├─72496 /opt/patroni/bin/python3 /opt/patroni/bin/patroni /opt/patroni/patroni.yml
+             ├─72536 /opt/pgpro/1c-18/bin/postgres -D /pgdata/test --config-file=/pgdata/test/postgresql.conf --listen_addresses=0.0.0.>
+             ├─72538 "postgres: test: logger "
+             ├─72539 "postgres: test: io worker 0"
+             ├─72540 "postgres: test: io worker 1"
+             ├─72541 "postgres: test: io worker 2"
+             ├─72542 "postgres: test: checkpointer "
+             ├─72543 "postgres: test: background writer "
+             ├─72545 "postgres: test: walwriter "
+             ├─72546 "postgres: test: autovacuum launcher "
+             ├─72547 "postgres: test: logical replication launcher "
+             ├─72551 "postgres: test: postgres postgres 127.0.0.1(36988) idle"
+             └─72568 "postgres: test: postgres postgres 127.0.0.1(36994) idle"
+
+янв 29 14:42:33 test-db1 patroni[72502]: выполняется заключительная инициализация... ок
+янв 29 14:42:33 test-db1 patroni[72502]: сохранение данных на диске... ок
+янв 29 14:42:33 test-db1 patroni[72502]: initdb: предупреждение: включение метода аутентификации "trust" для локальных подключений
+янв 29 14:42:33 test-db1 patroni[72502]: initdb: подсказка: Другой метод можно выбрать, отредактировав pg_hba.conf или ещё раз запустив>
+янв 29 14:42:33 test-db1 patroni[72502]: Готово. Теперь вы можете запустить сервер баз данных:
+янв 29 14:42:33 test-db1 patroni[72502]:     /opt/pgpro/1c-18/bin/pg_ctl -D /pgdata/test -l файл_журнала start
+янв 29 14:42:33 test-db1 patroni[72536]: 2026-01-29 14:42:33.490 MSK [72536] LOG:  redirecting log output to logging collector process
+янв 29 14:42:33 test-db1 patroni[72536]: 2026-01-29 14:42:33.490 MSK [72536] HINT:  Future log output will appear in directory "log".
+янв 29 14:42:33 test-db1 patroni[72537]: localhost:5432 - принимает подключения
+янв 29 14:42:33 test-db1 patroni[72549]: localhost:5432 - принимает подключения
+```
+
+Patroni запустил сам PostgreSQL 
+
+
 
 ##  5. Vip-manager
