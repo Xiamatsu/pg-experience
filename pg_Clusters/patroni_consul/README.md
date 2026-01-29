@@ -685,6 +685,16 @@ __Описание некоторых параметров:__
 'bootstrap' - раздел первой инициализации кластера
 ```
 
+Внимание!  С версии 'Patroni 4'  блока 'users' больше нет<br>
+Для добавления дополнительных пользователей используем<br>
+в блоке 'bootstrap' - 'post_bootstrap' где указываем скрипт дополнительной обработки
+
+``` yaml
+bootstrap:
+  ...
+  post_bootstrap: /opt/patroni/postboot.sh
+```
+
 __Проверка файла конфигурации__
 
 ``` bash
@@ -780,8 +790,90 @@ Patroni запустил сам PostgreSQL и создал новую базу<b
 #### 4.6 Запускаем на остальных хостах
 
 Выполняем настройку пп 4.1-4.5  на следующих хостах и запускаем<br>
+заменяя в настройках упоминание имени хоста 'test-db1' на новое<br>
 Инициализация теперь будет заключаться в создании реплики от певого хоста
 
 #### 4.7 Команда patronictl
+
+Для работы настроим переменные окружения для удобства работы __patronictl__<br>
+( запускаем от администратора )
+
+```
+sudo test -f ~postgres/.profile  &&  sudo sed -i "/PATRONI/d" ~postgres/.profile
+sudo test -f ~postgres/.profile  &&  sudo chown postgres: ~postgres/.profile
+sudo su - postgres -c "echo 'export PATRONI_CONFIGURATION=/opt/patroni/patroni.yml' >> ~postgres/.profile"
+sudo su - postgres -c "echo 'export PATRONICTL_CONFIG_FILE=/opt/patroni/patroni.yml' >> ~postgres/.profile"
+```
+
+__состояние кластера__
+
+``` bash
+(patroni) postgres@test-db3:~$ patronictl list
++ Cluster: test (7600747584385985354) ------+----+-------------+-----+------------+-----+
+| Member   | Host     | Role    | State     | TL | Receive LSN | Lag | Replay LSN | Lag |
++----------+----------+---------+-----------+----+-------------+-----+------------+-----+
+| test-db1 | test-db1 | Leader  | running   |  1 |             |     |            |     |
+| test-db2 | test-db2 | Replica | streaming |  1 |   0/5000060 |   0 |  0/5000060 |   0 |
+| test-db3 | test-db3 | Replica | streaming |  1 |   0/5000060 |   0 |  0/5000060 |   0 |
++----------+----------+---------+-----------+----+-------------+-----+------------+-----+
+```
+
+__ручное переключение Лидера__
+
+``` bash
+(patroni) postgres@test-db3:~$ patronictl switchover
+Current cluster topology
++ Cluster: test (7600747584385985354) ------+----+-------------+-----+------------+-----+
+| Member   | Host     | Role    | State     | TL | Receive LSN | Lag | Replay LSN | Lag |
++----------+----------+---------+-----------+----+-------------+-----+------------+-----+
+| test-db1 | test-db1 | Leader  | running   |  1 |             |     |            |     |
+| test-db2 | test-db2 | Replica | streaming |  1 |   0/5000060 |   0 |  0/5000060 |   0 |
+| test-db3 | test-db3 | Replica | streaming |  1 |   0/5000060 |   0 |  0/5000060 |   0 |
++----------+----------+---------+-----------+----+-------------+-----+------------+-----+
+Primary [test-db1]:
+Candidate ['test-db2', 'test-db3'] []:
+When should the switchover take place (e.g. 2026-01-29T18:24 )  [now]:
+Are you sure you want to switchover cluster test, demoting current leader test-db1? [y/N]: y
+2026-01-29 17:24:16.61228 Successfully switched over to "test-db2"
++ Cluster: test (7600747584385985354) ----+----+-------------+-----+------------+-----+
+| Member   | Host     | Role    | State   | TL | Receive LSN | Lag | Replay LSN | Lag |
++----------+----------+---------+---------+----+-------------+-----+------------+-----+
+| test-db1 | test-db1 | Replica | stopped |    |     unknown |     |    unknown |     |
+| test-db2 | test-db2 | Leader  | running |  1 |             |     |            |     |
+| test-db3 | test-db3 | Replica | running |  1 |   0/50001A8 |   0 |  0/50001A8 |   0 |
++----------+----------+---------+---------+----+-------------+-----+------------+-----+
+```
+
+__после переключения__
+
+``` bash
+(patroni) postgres@test-db3:~$ patronictl list
++ Cluster: test (7600747584385985354) ------+----+-------------+-----+------------+-----+
+| Member   | Host     | Role    | State     | TL | Receive LSN | Lag | Replay LSN | Lag |
++----------+----------+---------+-----------+----+-------------+-----+------------+-----+
+| test-db1 | test-db1 | Replica | running   |  1 |   0/5000000 |   0 |  0/50001A8 |   0 |
+| test-db2 | test-db2 | Leader  | running   |  2 |             |     |            |     |
+| test-db3 | test-db3 | Replica | streaming |  2 |   0/50002E8 |   0 |  0/50002E8 |   0 |
++----------+----------+---------+-----------+----+-------------+-----+------------+-----+
+```
+
+__теперь реплика на test-db1 восстановилась__
+
+``` bash
+(patroni) postgres@test-db3:~$ patronictl list
++ Cluster: test (7600747584385985354) ------+----+-------------+-----+------------+-----+
+| Member   | Host     | Role    | State     | TL | Receive LSN | Lag | Replay LSN | Lag |
++----------+----------+---------+-----------+----+-------------+-----+------------+-----+
+| test-db1 | test-db1 | Replica | streaming |  2 |   0/50002E8 |   0 |  0/50002E8 |   0 |
+| test-db2 | test-db2 | Leader  | running   |  2 |             |     |            |     |
+| test-db3 | test-db3 | Replica | streaming |  2 |   0/50002E8 |   0 |  0/50002E8 |   0 |
++----------+----------+---------+-----------+----+-------------+-----+------------+-----+
+```
+
+
+
+#### 4.8  Как это выглядит на Web-странице Consul-а
+
+
 
 ## 5. Vip-manager
