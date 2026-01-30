@@ -47,11 +47,14 @@ __- план__
 #### 2.1 Установка Consul
 
 на каждом хосте DCS загружаем выполняемый файл Consul и создаем рабочие каталоги<br>
-(1.22.3 - последняя верси на январь 2026)
+(1.22.3 - последняя версия на январь 2026)<br>
+  (версия 1.22 содержит новые возможности, которые ещё не изучены)<br>
+  (и некоторые моменты неправильно отображаются)<br>
+(будем использовать версию 1.21.5 как последнюю от 1.21)  
 
 ``` bash
-wget https://hashicorp-releases.mcs.mail.ru/consul/1.22.3/consul_1.22.3_linux_amd64.zip -O /tmp/consul.zip
-sudo unzip /tmp/consul.zip -d /usr/bin
+wget https://hashicorp-releases.mcs.mail.ru/consul/1.21.5/consul_1.21.5_linux_amd64.zip -O /tmp/consul1215.zip
+sudo unzip /tmp/consul1215.zip -d /usr/bin
 sudo chmod +x /usr/bin/consul
 
 sudo groupadd consul
